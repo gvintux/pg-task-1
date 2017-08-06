@@ -10,9 +10,9 @@ eps = float_info[8]
 
 def deflection_func(a):
     k = np.sqrt(a['l'] ** 2 + a['e'] ** 2)
-    A = a['D'] * k ** 4 + a['g'] * a['p_w'] - a['h'] * a['l'] ** 2 * a['p_i'] * a['v'] ** 2
-    A -= (a['l'] ** 2 * a['v'] ** 2) / (k * np.tanh(a['H'] * k))
-    B = a['D'] * a['e'] ** 4 * a['l'] * a['t_f'] * a['v']
+    A = a['D'] * k ** 4 + a['g'] * a['p_w'] - 3 * a['h'] * a['l'] ** 2 * a['p_i'] * a['v'] ** 2
+    A -= 4 * (a['l'] ** 2 * a['v'] ** 2 * a['p_w']) / (k * np.tanh(a['H'] * k))
+    B = a['D'] * a['l'] * a['t_f'] * a['v'] * (k ** 4 + a['e'] ** 4)
     phi = a['e'] * a['y'] + a['l'] * (a['x'] - a['v'] * a['t'])
     C = np.sin(a['e'] * a['a']) * np.sin(a['l'] * a['b'])
     return (A * np.cos(phi) - B * np.sin(phi)) * C / ((A ** 2 + B ** 2) * a['l'] * a['e'])
@@ -70,6 +70,7 @@ def integrator_adapter(func, args, inner_l, inner_u, outer_l, outer_u):
 def integrate_for(x, y, func, a):
     a['x'] = x
     a['y'] = y
-    # a['v'] -= 0.1
+    a['v'] -= 0.1
     print(str(x) + ';' + str(y))
-    return x, y, -4 * a['P'] * integrator_adapter(func, a, -np.inf, np.inf, -np.inf, np.inf) / (np.pi * 2)
+    # print(a)
+    return x, y, -16 * a['P'] * integrator_adapter(func, a, 0, np.inf, 0, np.inf) / (np.pi * 2)

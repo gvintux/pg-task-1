@@ -1,11 +1,11 @@
 import argparse
 import sys
 
-#import common.models.kelvin_fought.tension.numeric as tennum
+# import common.models.kelvin_fought.tension.numeric as tennum
 from sympy import pprint, init_printing
 
 import common.models.kelvin_fought.deflection.numeric as defnum
-# from common.models.kelvin_fought.deflection.symbolic import deflection_solve as solve
+from common.models.kelvin_fought.deflection.symbolic import deflection_solve as solve
 from common.values import Values
 
 argv = sys.argv
@@ -24,8 +24,7 @@ if len(sys.argv) == 1:
     parser.print_help()
 args = parser.parse_args(sys.argv[1:])
 a = Values()
-a['t'] = 7.270820463997841
-print(a['v'])
+a['t'] = 20
 if args.numeric:
     if args.deflection:
         print('Processing numeric deflection...')
