@@ -10,6 +10,7 @@ t = Symbol('t', real=True, nonzero=True)
 q = Symbol('q', real=True, nonzero=True)
 r = Symbol('r', real=True, nonzero=True)
 mu = Symbol('mu', real=True, nonzero=True)
+nu = Symbol('nu', real=True, nonzero=True)
 H = Symbol('H', real=True, nonzero=True)
 x = Symbol('x', real=True)
 y = Symbol('y', real=True)
@@ -62,52 +63,80 @@ def fourier_integral(func):
     return 1 / (2 * PI) * Integral(func * delta, (lm, -oo, +oo), (eta, -oo, +oo))
 
 
-# model = D * (nabla4(w) + tf * diff_t(nabla4(w))) + pw * g * w + pi * h * diff_t2(w) + pw * diff_t(Phi) - P
-model = D * (nabla4(w) + tf * diff(nabla4(w), t)) + pw * g * w + pi * h * diff(w, t, 2) + pw * diff(Phi, t) - P
-u = Symbol('u')
-ss = u - v * t
-model = model.subs(x, ss).doit()
-model = model.replace(ss, x).doit()
-model = model.subs(w, w1 + w2).subs(Phi, Phi1 + Phi2).doit()
-model = model.subs(w2, 0).subs(Phi2, 0).doit()
-Phi_xyz = Function('Phi')(x, y, z)
-w_xy = Function('w')(x, y)
-model = model.replace(w1, w_xy).replace(Phi1, Phi_xyz).doit()
-pprint(model)
-
-w_le = Function('w')(lm, eta)
-Phi_le = Function('Phi')(lm, eta)
-
-# Fourier expressions
-w_f = w_le * delta
-Phi_f = Phi_le * cosh((H + z) * k) * delta
-laplace_rule = Eq(diff(Phi_f, x, 2) + diff(Phi_f, y, 2) + diff(Phi_f, z, 2), 0)
-# analyze another solutions
-k_slv = solve(laplace_rule, k)
-pprint(k_slv)
-Phi_f = Phi_f.subs(k, k_slv[2]).doit()
-pprint(Phi_f)
-# ice-water line z = 0
-iw_line = Eq(diff(w, t).doit(), diff(Phi, z))
-iw_line = iw_line.subs(x, ss).doit()
-iw_line = iw_line.replace(ss, x).doit()
-iw_line = iw_line.subs(w, w1 + w2).subs(Phi, Phi1 + Phi2).doit()
-iw_line = iw_line.subs(w2, 0).subs(Phi2, 0).doit()
-iw_line = iw_line.replace(w1, w_xy).replace(Phi1, Phi_xyz).doit()
-pprint(iw_line)
-iw_line_f = iw_line.subs(Phi_xyz, Phi_f).doit().subs(w_xy, w_f).doit()
-pprint(iw_line_f)
-Phi_le_slv = solve(iw_line_f, Phi_le)[0]
-pprint(Phi_le_slv)
-Phi_f_slv = Phi_f.subs(Phi_le, Phi_le_slv).doit().subs(z, 0).simplify()
-pprint(Phi_f_slv)
-w_le_slv = model.subs(Phi_xyz, Phi_f_slv).subs(w_xy, w_f).subs(P, P * delta).doit()
-w_le_slv = solve(w_le_slv, w_le)[0]
-pprint(w_le_slv)
 
 
 def deflection_solve(**specs):
-    pass
+    # model = D * (nabla4(w) + tf * diff_t(nabla4(w))) + pw * g * w + pi * h * diff_t2(w) + pw * diff_t(Phi) - P
+    model = D * (nabla4(w) + tf * diff(nabla4(w), t)) + pw * g * w + pi * h * diff(w, t, 2) + pw * diff(Phi, t) - P
+    u = Symbol('u')
+    ss = u - v * t
+    model = model.subs(x, ss).doit()
+    model = model.replace(ss, x).doit()
+    model = model.subs(w, w1 + w2).subs(Phi, Phi1 + Phi2).doit()
+    model = model.subs(w2, 0).subs(Phi2, 0).doit()
+    Phi_xyz = Function('Phi')(x, y, z)
+    w_xy = Function('w')(x, y)
+    model = model.replace(w1, w_xy).replace(Phi1, Phi_xyz).doit()
+    pprint(model)
+
+    w_le = Function('w')(lm, eta)
+    Phi_le = Function('Phi')(lm, eta)
+
+    # Fourier expressions
+    w_f = w_le * delta
+    Phi_f = Phi_le * cosh((H + z) * k) * delta
+    laplace_rule = Eq(diff(Phi_f, x, 2) + diff(Phi_f, y, 2) + diff(Phi_f, z, 2), 0)
+    # analyze another solutions
+    k_slv = solve(laplace_rule, k)
+    pprint(k_slv)
+    Phi_f = Phi_f.subs(k, k_slv[2]).doit()
+    pprint(Phi_f)
+    # ice-water line z = 0
+    iw_line = Eq(diff(w, t).doit(), diff(Phi, z))
+    iw_line = iw_line.subs(x, ss).doit()
+    iw_line = iw_line.replace(ss, x).doit()
+    iw_line = iw_line.subs(w, w1 + w2).subs(Phi, Phi1 + Phi2).doit()
+    iw_line = iw_line.subs(w2, 0).subs(Phi2, 0).doit()
+    iw_line = iw_line.replace(w1, w_xy).replace(Phi1, Phi_xyz).doit()
+    pprint(iw_line)
+    iw_line_f = iw_line.subs(Phi_xyz, Phi_f).doit().subs(w_xy, w_f).doit()
+    pprint(iw_line_f)
+    Phi_le_slv = solve(iw_line_f, Phi_le)[0]
+    pprint(Phi_le_slv)
+    Phi_f_slv = Phi_f.subs(Phi_le, Phi_le_slv).doit().subs(z, 0).simplify()
+    pprint(Phi_f_slv)
+    w_le_slv = model.subs(Phi_xyz, Phi_f_slv).subs(w_xy, w_f).subs(P, P * delta).doit()
+    w_le_slv = solve(w_le_slv, w_le)[0]
+    pprint(w_le_slv)
+    numer, denom = fraction(w_le_slv)
+    K = numer.coeff(P)
+    numer /= K
+    denom = (denom / K).simplify()
+    denom_im = im(denom)
+    denom_re = re(denom).collect(D)
+    T = factor(denom_re.coeff(D).simplify(), deep=True)
+    denom_re = (denom_re - T * D).simplify() + T * D
+    pprint(denom_re)
+    Aa = denom_re
+    Bb = denom_im
+
+    conj = A - I * B
+    denom = ((A + I * B) * conj).simplify()
+    w_le_slv_simp = (numer / denom)
+    w_slv = w_f.subs(w_le, w_le_slv_simp).doit()
+    pprint(w_slv)
+    # load size
+    w_load = w_slv.subs(x, x - mu).subs(y, y - nu).doit()
+    w_load = integrate(w_load, (mu, -b, b), (nu, -a, a)).doit()
+    w_load = w_load.collect(I).rewrite(sin)
+    pprint(w_load)
+    w_load = re((w_load.collect(1 / eta).collect(1 / lm)) * conj).simplify()
+    pprint(w_load)
+    print("A:")
+    pprint(Aa)
+    print("B:")
+    pprint(Bb)
+    return w_load, A, B
     # if 'lm' in specs:
     #     lm = specs['lm']
     # else:

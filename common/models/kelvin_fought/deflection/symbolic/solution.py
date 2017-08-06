@@ -6,10 +6,7 @@ if __name__ == '__main__':
     cols = 80
     init_printing(use_unicode=True, num_columns=cols)
     print("Deflection formula (general):")
-    print('hello')
     pprint(solve())
-    print('hello')
-
     print(cols * '=')
     pprint("Deflection formula (lambda = 0):")
     pprint(solve(lm=0))
