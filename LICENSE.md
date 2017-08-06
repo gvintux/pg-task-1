@@ -1,2 +1,1 @@
-
-Copyright (C) 2017 
+Copyright (C) 2017 Alexander V. Kozhaev
