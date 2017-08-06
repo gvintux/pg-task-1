@@ -28,12 +28,16 @@ A = Symbol('A', real=True, nonzero=True)
 B = Symbol('B', real=True, nonzero=True)
 dPhidt = Symbol('dPhi_dt', real=True, nonzero=True)
 P = Symbol('P', real=True, nonzero=True)
+k = Symbol('k')
+
 w1 = Function('w1')(x, y)
 w2 = Function('w2')(t)
-w = w1 + w2
-Phi1 = Function('Phi1')(x, y)
+# w = w1 + w2
+w = Function('w')(x, y, t)
+Phi1 = Function('Phi1')(x, y, z)
 Phi2 = Function('Phi2')(t)
-Phi = Phi1 + Phi2
+# Phi = Phi1 + Phi2
+Phi = Function('Phi')(x, y, z, t)
 
 
 def nabla4(func):
@@ -58,9 +62,48 @@ def fourier_integral(func):
     return 1 / (2 * PI) * Integral(func * delta, (lm, -oo, +oo), (eta, -oo, +oo))
 
 
-model = D * (nabla4(w) + tf * diff_t(nabla4(w))) + pw * g * w + pi * h * diff_t2(w) + pw * diff_t(Phi) - P
-model = simplify(model.subs(w2, 0).subs(Phi2, 0).doit())
+# model = D * (nabla4(w) + tf * diff_t(nabla4(w))) + pw * g * w + pi * h * diff_t2(w) + pw * diff_t(Phi) - P
+model = D * (nabla4(w) + tf * diff(nabla4(w), t)) + pw * g * w + pi * h * diff(w, t, 2) + pw * diff(Phi, t) - P
+u = Symbol('u')
+ss = u - v * t
+model = model.subs(x, ss).doit()
+model = model.replace(ss, x).doit()
+model = model.subs(w, w1 + w2).subs(Phi, Phi1 + Phi2).doit()
+model = model.subs(w2, 0).subs(Phi2, 0).doit()
+Phi_xyz = Function('Phi')(x, y, z)
+w_xy = Function('w')(x, y)
+model = model.replace(w1, w_xy).replace(Phi1, Phi_xyz).doit()
 pprint(model)
+
+w_le = Function('w')(lm, eta)
+Phi_le = Function('Phi')(lm, eta)
+
+# Fourier expressions
+w_f = w_le * delta
+Phi_f = Phi_le * cosh((H + z) * k) * delta
+laplace_rule = Eq(diff(Phi_f, x, 2) + diff(Phi_f, y, 2) + diff(Phi_f, z, 2), 0)
+# analyze another solutions
+k_slv = solve(laplace_rule, k)
+pprint(k_slv)
+Phi_f = Phi_f.subs(k, k_slv[2]).doit()
+pprint(Phi_f)
+# ice-water line z = 0
+iw_line = Eq(diff(w, t).doit(), diff(Phi, z))
+iw_line = iw_line.subs(x, ss).doit()
+iw_line = iw_line.replace(ss, x).doit()
+iw_line = iw_line.subs(w, w1 + w2).subs(Phi, Phi1 + Phi2).doit()
+iw_line = iw_line.subs(w2, 0).subs(Phi2, 0).doit()
+iw_line = iw_line.replace(w1, w_xy).replace(Phi1, Phi_xyz).doit()
+pprint(iw_line)
+iw_line_f = iw_line.subs(Phi_xyz, Phi_f).doit().subs(w_xy, w_f).doit()
+pprint(iw_line_f)
+Phi_le_slv = solve(iw_line_f, Phi_le)[0]
+pprint(Phi_le_slv)
+Phi_f_slv = Phi_f.subs(Phi_le, Phi_le_slv).doit().subs(z, 0).simplify()
+pprint(Phi_f_slv)
+w_le_slv = model.subs(Phi_xyz, Phi_f_slv).subs(w_xy, w_f).subs(P, P * delta).doit()
+w_le_slv = solve(w_le_slv, w_le)[0]
+pprint(w_le_slv)
 
 
 def deflection_solve(**specs):
