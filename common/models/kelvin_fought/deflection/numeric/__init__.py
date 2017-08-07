@@ -1,21 +1,16 @@
 import multiprocessing as mp
-from builtins import print
-from sys import float_info
-
-import numpy as np
+from math import *
 from scipy.integrate import nquad
-
-eps = float_info[8]
-
+from numpy import inf
 
 def deflection_func(a):
-    k = np.sqrt(a['l'] ** 2 + a['e'] ** 2)
+    k = sqrt(a['l'] ** 2 + a['e'] ** 2)
     A = a['D'] * k ** 4 + a['g'] * a['p_w'] - 3 * a['h'] * a['l'] ** 2 * a['p_i'] * a['v'] ** 2
-    A -= 4 * (a['l'] ** 2 * a['v'] ** 2 * a['p_w']) / (k * np.tanh(a['H'] * k))
+    A -= 4 * a['l'] ** 2 * a['v'] ** 2 * a['p_w'] / (k * tanh(a['H'] * k))
     B = a['D'] * a['l'] * a['t_f'] * a['v'] * (k ** 4 + a['e'] ** 4)
     phi = a['e'] * a['y'] + a['l'] * (a['x'] - a['v'] * a['t'])
-    C = np.sin(a['e'] * a['a']) * np.sin(a['l'] * a['b'])
-    return (A * np.cos(phi) - B * np.sin(phi)) * C / ((A ** 2 + B ** 2) * a['l'] * a['e'])
+    C = sin(a['e'] * a['a']) * sin(a['l'] * a['b'])
+    return (A * cos(phi) - B * sin(phi)) * C / a['l'] / a['e'] / (A ** 2 + B ** 2)
     # # a['v'] = 0
     # if a['l'] == 0 and a['e'] == 0:
     #     return 0
@@ -73,4 +68,4 @@ def integrate_for(x, y, func, a):
     a['v'] -= 0.1
     print(str(x) + ';' + str(y))
     # print(a)
-    return x, y, -16 * a['P'] * integrator_adapter(func, a, 0, np.inf, 0, np.inf) / (np.pi * 2)
+    return x, y, -16 * a['P'] * integrator_adapter(func, a, 0, inf, 0, inf) / (pi * 2)

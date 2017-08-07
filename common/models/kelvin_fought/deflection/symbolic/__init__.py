@@ -20,7 +20,6 @@ tf = Symbol('tau_phi', real=True, nonzero=True)
 lm = Symbol('lambda', real=True, nonzero=True)
 eta = Symbol('eta', real=True, nonzero=True)
 delta = Symbol('delta', real=True)
-PhiLE = Function('Phi')(lm, eta)
 xi = Symbol('xi', real=True, nonzero=True)
 chi = Symbol('chi', real=True, nonzero=True)
 a = Symbol('a', real=True, nonzero=True)
@@ -56,18 +55,21 @@ def diff_t2(func):
     return diff(func, t, 2) - 2 * v * diff(diff(func, x), t) + v ** 2 * diff(func, x, 2)
 
 
-delta = exp(-I * (lm * (x - v * t) + eta * y))
-
-
-def fourier_integral(func):
-    return 1 / (2 * PI) * Integral(func * delta, (lm, -oo, +oo), (eta, -oo, +oo))
-
-
+def fourier_integral(func, dlt):
+    return 1 / (2 * PI) * Integral(func * dlt, (lm, -oo, +oo), (eta, -oo, +oo))
 
 
 def deflection_solve(**specs):
-    # model = D * (nabla4(w) + tf * diff_t(nabla4(w))) + pw * g * w + pi * h * diff_t2(w) + pw * diff_t(Phi) - P
+    if 'lm' in specs:
+        global lm
+        lm = 0
+    if 'eta' in specs:
+        global eta
+        eta = 0
+    delta = exp(-I * (lm * (x - v * t) + eta * y))
     model = D * (nabla4(w) + tf * diff(nabla4(w), t)) + pw * g * w + pi * h * diff(w, t, 2) + pw * diff(Phi, t) - P
+    print("General model")
+    pprint(model)
     u = Symbol('u')
     ss = u - v * t
     model = model.subs(x, ss).doit()
@@ -77,44 +79,51 @@ def deflection_solve(**specs):
     # Phi_xyz = Function('Phi')(x, y, z)
     # w_xy = Function('w')(x, y)
     # # model = model.replace(w1, w_xy).replace(Phi1, Phi_xyz).doit()
+    print("Model with x := x - v*t substitution")
     pprint(model)
-    input('?')
-
     w_le = Function('w')(lm, eta)
     Phi_le = Function('Phi')(lm, eta)
-
     # Fourier expressions
     w_f = w_le * delta
     Phi_f = Phi_le * cosh((H + z) * k) * delta
     laplace_rule = Eq(diff(Phi_f, x, 2) + diff(Phi_f, y, 2) + diff(Phi_f, z, 2), 0)
-    # analyze another solutions
+    # ?analyze another solutions
     k_slv = solve(laplace_rule, k)
+    print("k solutions")
     pprint(k_slv)
-    input('?')
-    Phi_f = Phi_f.subs(k, k_slv[2]).doit()
-    pprint(Phi_f)
-    input('?')
-
+    if lm == 0 and eta != 0:
+        Phi_f = Phi_f.subs(k, k_slv[1]).doit()
+    if eta == 0 and lm != 0:
+        Phi_f = Phi_f.subs(k, k_slv[0]).doit()
+    if eta == 0 and lm == 0:
+        Phi_f = Phi_f.subs(k, k_slv[0]).doit()
+    if eta !=0 and lm !=0:
+        Phi_f = Phi_f.subs(k, k_slv[2]).doit()
     # ice-water line z = 0
     iw_line = Eq(diff(w, t).doit(), diff(Phi, z))
+    print('Ice-water border equation')
+    pprint(iw_line)
     iw_line = iw_line.subs(x, ss).doit()
     iw_line = iw_line.replace(ss, x).doit()
+    print('Ice-water border equation with x := x - v*t substitution')
+    pprint(iw_line)
     # iw_line = iw_line.subs(w, w1 + w2).subs(Phi, Phi1 + Phi2).doit()
     # iw_line = iw_line.subs(w2, 0).subs(Phi2, 0).doit()
     # iw_line = iw_line.replace(w1, w_xy).replace(Phi1, Phi_xyz).doit()
-    pprint(iw_line)
-    input('?')
     iw_line_f = iw_line.subs(Phi, Phi_f).doit().subs(w, w_f).doit()
-    pprint(iw_line_f)
-    input('?')
-    Phi_le_slv = solve(iw_line_f, Phi_le)[0]
+    Phi_le_slv = None
+    try:
+        Phi_le_slv = solve(iw_line_f, Phi_le)[0]
+    except TypeError:
+        Phi_le_slv = Number('0')
+    pprint('Phi(lambda, eta) solution')
     pprint(Phi_le_slv)
-    input('?')
     Phi_f_slv = Phi_f.subs(Phi_le, Phi_le_slv).doit().subs(z, 0).simplify()
+    pprint('Phi(x, y, z, t) solution')
     pprint(Phi_f_slv)
-    input('?')
     w_le_slv = model.subs(Phi, Phi_f_slv).subs(w, w_f).subs(P, P * delta).doit()
     w_le_slv = solve(w_le_slv, w_le)[0]
+    pprint('w(x, y, t) solution')
     pprint(w_le_slv)
     numer, denom = fraction(w_le_slv)
     K = numer.coeff(P)
@@ -126,25 +135,31 @@ def deflection_solve(**specs):
     denom_re = re(denom).collect(D)
     T = factor(denom_re.coeff(D).simplify(), deep=True)
     denom_re = (denom_re - T * D).simplify() + T * D
-    pprint(denom_re)
     Aa = denom_re
     Bb = denom_im
-
     conj = A - I * B
     denom = ((A + I * B) * conj).simplify()
     w_le_slv_simp = (numer / denom)
     w_slv = w_f.subs(w_le, w_le_slv_simp).doit()
+    pprint('w(x, y, t) solution')
     pprint(w_slv)
     # load size
     w_load = w_slv.subs(x, x - mu).subs(y, y - nu).doit()
     w_load = integrate(w_load, (mu, -b, b), (nu, -a, a)).doit()
     w_load = w_load.collect(I).rewrite(sin)
+    if (lm == 0 and eta != 0):
+        w_load = re((w_load.collect(1 / eta)) * conj).simplify()
+    elif (eta == 0 and lm != 0):
+        w_load = re((w_load.collect(1 / eta)) * conj).simplify()
+    elif (eta == 0 and lm == 0):
+        w_load = re(w_load * conj).simplify()
+    else:
+        w_load = re((w_load.collect(1 / eta).collect(1 / lm) * conj)).simplify()
+    pprint('w(x, y, t) solution for rectangle load [2*a;2*b]')
     pprint(w_load)
-    w_load = re((w_load.collect(1 / eta).collect(1 / lm)) * conj).simplify()
-    pprint(w_load)
-    print("A:")
+    print("A coeff")
     pprint(Aa)
-    print("B:")
+    print("B coeff")
     pprint(Bb)
     return w_load, A, B
     # if 'lm' in specs:

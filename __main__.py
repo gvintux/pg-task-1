@@ -24,7 +24,7 @@ if len(sys.argv) == 1:
     parser.print_help()
 args = parser.parse_args(sys.argv[1:])
 a = Values()
-a['t'] = 20
+a['t'] = 0
 if args.numeric:
     if args.deflection:
         print('Processing numeric deflection...')
