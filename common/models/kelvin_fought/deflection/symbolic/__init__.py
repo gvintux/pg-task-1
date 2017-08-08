@@ -32,11 +32,11 @@ k = Symbol('k')
 
 w1 = Function('w1')(x, y)
 w2 = Function('w2')(t)
-# w = w1 + w2
+w = w1 + w2
 w = Function('w')(x, y, t)
 Phi1 = Function('Phi1')(x, y, z)
 Phi2 = Function('Phi2')(t)
-# Phi = Phi1 + Phi2
+Phi = Phi1 + Phi2
 Phi = Function('Phi')(x, y, z, t)
 
 
@@ -74,11 +74,11 @@ def deflection_solve(**specs):
     ss = u - v * t
     model = model.subs(x, ss).doit()
     model = model.replace(ss, x).doit()
-    # model = model.subs(w, w1 + w2).subs(Phi, Phi1 + Phi2).doit()
-    # model = model.subs(w2, 0).subs(Phi2, 0).doit()
-    # Phi_xyz = Function('Phi')(x, y, z)
-    # w_xy = Function('w')(x, y)
-    # # model = model.replace(w1, w_xy).replace(Phi1, Phi_xyz).doit()
+    model = model.subs(w, w1 + w2).subs(Phi, Phi1 + Phi2).doit()
+    model = model.subs(w2, 0).subs(Phi2, 0).doit()
+    Phi_xyz = Function('Phi')(x, y, z)
+    w_xy = Function('w')(x, y)
+    model = model.replace(w1, w_xy).replace(Phi1, Phi_xyz).doit()
     print("Model with x := x - v*t substitution")
     pprint(model)
     w_le = Function('w')(lm, eta)
@@ -107,21 +107,25 @@ def deflection_solve(**specs):
     iw_line = iw_line.replace(ss, x).doit()
     print('Ice-water border equation with x := x - v*t substitution')
     pprint(iw_line)
-    # iw_line = iw_line.subs(w, w1 + w2).subs(Phi, Phi1 + Phi2).doit()
-    # iw_line = iw_line.subs(w2, 0).subs(Phi2, 0).doit()
-    # iw_line = iw_line.replace(w1, w_xy).replace(Phi1, Phi_xyz).doit()
-    iw_line_f = iw_line.subs(Phi, Phi_f).doit().subs(w, w_f).doit()
+    iw_line = iw_line.subs(w, w1 + w2).subs(Phi, Phi1 + Phi2).doit()
+    iw_line = iw_line.subs(w2, 0).subs(Phi2, 0).doit()
+    iw_line = iw_line.replace(w1, w_xy).replace(Phi1, Phi_xyz).doit()
+    pprint(iw_line)
+    iw_line_f = iw_line.subs(Phi_xyz, Phi_f).doit().subs(w_xy, w_f).doit()
+    pprint(iw_line_f)
     Phi_le_slv = None
     try:
         Phi_le_slv = solve(iw_line_f, Phi_le)[0]
     except TypeError:
+        Phi_le_slv = Number('0')
+    except IndexError:
         Phi_le_slv = Number('0')
     pprint('Phi(lambda, eta) solution')
     pprint(Phi_le_slv)
     Phi_f_slv = Phi_f.subs(Phi_le, Phi_le_slv).doit().subs(z, 0).simplify()
     pprint('Phi(x, y, z, t) solution')
     pprint(Phi_f_slv)
-    w_le_slv = model.subs(Phi, Phi_f_slv).subs(w, w_f).subs(P, P * delta).doit()
+    w_le_slv = model.subs(Phi_xyz, Phi_f_slv).subs(w_xy, w_f).subs(P, P * delta).doit()
     w_le_slv = solve(w_le_slv, w_le)[0]
     pprint('w(x, y, t) solution')
     pprint(w_le_slv)

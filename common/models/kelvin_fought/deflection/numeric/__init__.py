@@ -10,7 +10,7 @@ def deflection_func(a):
     C = sin(a['e'] * a['a']) * sin(a['l'] * a['b'])
     phi = a['e'] * a['y'] + a['l'] * (a['x'] - a['v'] * a['t'])
     if a['l'] == 0 and a['e'] != 0:
-        A = a['D'] * k ** 4 + a['g'] * a['p_w']
+        A = a['D'] * a['e'] ** 4 + a['g'] * a['p_w']
         B = 0
         return a['b'] * C * (A * cos(phi) - B * sin(phi)) / a['e'] / (A ** 2 + B ** 2)
     if a['l'] != 0 and a['e'] == 0:
@@ -22,8 +22,8 @@ def deflection_func(a):
         B = 0
         return a['a'] * a['b'] * A / (A ** 2 + B ** 2)
     A = a['D'] * k ** 4 + a['g'] * a['p_w'] - a['l'] ** 2 * a['v'] ** 2 * (
-        3 * a['h'] * a['p_i'] + 4 * a['p_w'] / (k * tanh(a['H'] * k)))
-    B = a['D'] * a['l'] * a['t_f'] * a['v'] * (k ** 4 + a['e'] ** 4)
+        a['h'] * a['p_i'] + a['p_w'] / (k * tanh(a['H'] * k)))
+    B = a['D'] * a['l'] * a['t_f'] * a['v'] * a['e'] ** 4
     return (A * cos(phi) - B * sin(phi)) * C / a['l'] / a['e'] / (A ** 2 + B ** 2)
 
 
@@ -53,8 +53,6 @@ def integrator_adapter(func, args, inner_l, inner_u, outer_l, outer_u):
 def integrate_for(x, y, func, a):
     a['x'] = x
     a['y'] = y
-    # a['v'] *= 0.498
-    a['v'] *= 0.6
+    a['v'] *= 0.99
     print(str(x) + ';' + str(y))
-    print(a)
     return x, y, -16 * a['P'] * integrator_adapter(func, a, 0, inf, 0, inf) / (pi * 2) / 10000
