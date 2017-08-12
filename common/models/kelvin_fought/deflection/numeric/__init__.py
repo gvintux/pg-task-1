@@ -7,11 +7,13 @@ from scipy.integrate import nquad
 
 def deflection_func(a):
     k = sqrt(a['l'] ** 2 + a['e'] ** 2)
+    # different for lm | eta = 0
     C = sin(a['e'] * a['a']) * sin(a['l'] * a['b'])
     phi = a['e'] * a['y'] + a['l'] * (a['x'] - a['v'] * a['t'])
     if a['l'] == 0 and a['e'] != 0:
         A = a['D'] * a['e'] ** 4 + a['g'] * a['p_w']
         B = 0
+        C = sin(a['e'] * a['a'])
         return a['b'] * C * (A * cos(phi) - B * sin(phi)) / a['e'] / (A ** 2 + B ** 2)
     if a['l'] != 0 and a['e'] == 0:
         A = a['g'] * a['p_w']
@@ -24,6 +26,7 @@ def deflection_func(a):
     A = a['D'] * k ** 4 + a['g'] * a['p_w'] - a['l'] ** 2 * a['v'] ** 2 * (
         a['h'] * a['p_i'] + a['p_w'] / (k * tanh(a['H'] * k)))
     B = a['D'] * a['l'] * a['t_f'] * a['v'] * a['e'] ** 4
+    C = sin(a['e'] * a['a']) * sin(a['l'] * a['b'])
     return (A * cos(phi) - B * sin(phi)) * C / a['l'] / a['e'] / (A ** 2 + B ** 2)
 
 

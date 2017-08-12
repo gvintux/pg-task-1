@@ -98,4 +98,6 @@ def tension_state(a, xrange, yrange, specs):
 def integrate_for(x, y, func, a):
     a['x'] = x
     a['y'] = y
+    a['v'] *= 0.99
+    print(str(x) + ';' + str(y))
     return x, y, func(a)

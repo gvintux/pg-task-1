@@ -1,7 +1,7 @@
 import argparse
 import sys
 
-# import common.models.kelvin_fought.tension.numeric as tennum
+import common.models.kelvin_fought.tension.numeric as tennum
 from sympy import pprint, init_printing
 
 import common.models.kelvin_fought.deflection.numeric as defnum

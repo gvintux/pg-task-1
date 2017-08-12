@@ -81,8 +81,8 @@ def deflection_solve(**specs):
     model = model.replace(w1, w_xy).replace(Phi1, Phi_xyz).doit()
     print("Model with x := x - v*t substitution")
     pprint(model)
-    w_le = Function('w')(lm, eta)
-    Phi_le = Function('Phi')(lm, eta)
+    w_le = Function('w')(lm, eta, t)
+    Phi_le = Function('Phi')(lm, eta, t)
     # Fourier expressions
     w_f = w_le * delta
     Phi_f = Phi_le * cosh((H + z) * k) * delta
