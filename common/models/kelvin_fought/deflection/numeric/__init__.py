@@ -60,4 +60,4 @@ def integrate_for(x, y, func, a):
     a['v'] *= 0.99
     print(a['v'])
     print(str(x) + ';' + str(y))
-    return x, y, -16 * a['P'] * integrator_adapter(func, a, 0, inf, 0, inf) / (pi ** 2) / 1000
+    return x, y, -4 * a['P'] * integrator_adapter(func, a, 0, inf, 0, inf) / (pi ** 2) / 1000
