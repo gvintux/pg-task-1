@@ -23,9 +23,10 @@ def deflection_func(a):
         A = a['g'] * a['p_w']
         B = 0
         return a['a'] * a['b'] * A / (A ** 2 + B ** 2)
+
     A = a['D'] * k ** 4 + a['g'] * a['p_w'] - a['l'] ** 2 * a['v'] ** 2 * (
         a['h'] * a['p_i'] + a['p_w'] / (k * tanh(a['H'] * k)))
-    B = a['D'] * a['l'] * a['t_f'] * a['v'] * a['e'] ** 4
+    B = a['D'] * a['l'] * a['t_f'] * a['v'] * (k ** 4)
     C = sin(a['e'] * a['a']) * sin(a['l'] * a['b'])
     return (A * cos(phi) - B * sin(phi)) * C / a['l'] / a['e'] / (A ** 2 + B ** 2)
 
@@ -57,5 +58,6 @@ def integrate_for(x, y, func, a):
     a['x'] = x
     a['y'] = y
     a['v'] *= 0.99
+    print(a['v'])
     print(str(x) + ';' + str(y))
-    return x, y, -16 * a['P'] * integrator_adapter(func, a, 0, inf, 0, inf) / (pi * 2) / 10000
+    return x, y, -16 * a['P'] * integrator_adapter(func, a, 0, inf, 0, inf) / (pi ** 2) / 1000
