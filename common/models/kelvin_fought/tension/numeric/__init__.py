@@ -30,31 +30,28 @@ def f6(a):
 
 
 def dmx(a):
-    return a['D'] * (f1(a) + a['mu'] * f2(a) + a['t_f'] * (f4(a) + a['mu'] * f5(a))) * 16 * a['P'] / (np.pi ** 2) / (
-        4 * a['a'] * a['b'])
+    return - a['D'] * (f1(a) + a['mu'] * f2(a) + a['t_f'] * (f4(a) + a['mu'] * f5(a)))
 
 
 def dmy(a):
-    return a['D'] * (f2(a) + a['mu'] * f1(a) + a['t_f'] * (f5(a) + a['mu'] * f4(a))) * 16 * a['P'] / (np.pi ** 2) / (
-        4 * a['a'] * a['b'])
+    return - a['D'] * (f2(a) + a['mu'] * f1(a) + a['t_f'] * (f5(a) + a['mu'] * f4(a)))
 
 
 def dmxy(a):
-    return a['D'] * (1 - a['mu']) * (f3(a) + a['t_f'] * f6(a)) * 16 * a['P'] / (np.pi ** 2) / (
-        4 * a['a'] * a['b'])
+    return - a['D'] * (1 - a['mu']) * (f3(a) + a['t_f'] * f6(a))
 
 
 def tension_func_sx(a):
-    val = 6 * integrator_adapter(dmx, a, 0, np.inf, 0, np.inf) / a['h'] ** 2
+    val = 6 * dmx(a) / a['h'] ** 2
     return val
 
 
 def tension_func_sy(a):
-    return 6 * integrator_adapter(dmy, a, 0, np.inf, 0, np.inf) / a['h'] ** 2
+    return 6 * dmy(a) / a['h'] ** 2
 
 
 def tension_func_txy(a):
-    return 6 * integrator_adapter(dmxy, a, 0, np.inf, 0, np.inf) / a['h'] ** 2
+    return 6 * dmxy(a) / a['h'] ** 2
 
 
 def tension_state(a, xrange, yrange, specs):
@@ -99,5 +96,6 @@ def integrate_for(x, y, func, a):
     a['x'] = x
     a['y'] = y
     a['v'] *= 0.99
+    a['t'] = 0
     print(str(x) + ';' + str(y))
-    return x, y, func(a)
+    return x, y, integrator_adapter(func, a, 0, np.inf, 0, np.inf)
