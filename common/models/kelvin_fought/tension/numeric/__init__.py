@@ -5,24 +5,24 @@ import numpy as np
 from common.models.kelvin_fought.deflection.numeric import deflection_func as w, integrator_adapter
 
 
-def f1(a):
-    return - a['l'] ** 2 * w(a)
-
-
-def f2(a):
-    return - a['e'] ** 2 * w(a)
+# def f1(a):
+#     return - a['l'] ** 2 * w(a)
+#
+#
+# def f2(a):
+#     return - a['e'] ** 2 * w(a)
 
 
 def f3(a):
     return a['l'] * a['e'] * w(a)
 
 
-def f4(a):
-    return - a['l'] ** 3 * a['v'] * w(a)
+# def f4(a):
+#     return - a['l'] ** 3 * a['v'] * w(a)
 
 
-def f5(a):
-    return - a['e'] ** 2 * a['v'] * w(a)
+# def f5(a):
+#     return
 
 
 def f6(a):
@@ -30,7 +30,12 @@ def f6(a):
 
 
 def dmx(a):
-    return - a['D'] * (f1(a) + a['mu'] * f2(a) + a['t_f'] * (f4(a) + a['mu'] * f5(a)))
+    w_val = w(a)
+    f1 = - a['l'] ** 2 * w_val
+    f2 = - a['e'] ** 2 * w_val
+    f4 = - a['l'] ** 3 * a['v'] * w_val
+    f5 = - - a['e'] ** 2 * a['v'] * w_val
+    return - a['D'] * (f1 + a['mu'] * f2 + a['t_f'] * (f4(a) + a['mu'] * f5(a)))
 
 
 def dmy(a):
@@ -98,4 +103,4 @@ def integrate_for(x, y, func, a):
     a['v'] *= 0.99
     a['t'] = 0
     print(str(x) + ';' + str(y))
-    return x, y, integrator_adapter(func, a, 0, np.inf, 0, np.inf)
+    return x, y, -4 * a['P'] * integrator_adapter(func, a, 0, np.inf, 0, np.inf) / 1000 / (np.pi ** 2)
